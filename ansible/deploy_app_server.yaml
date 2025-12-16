@@ -1,0 +1,28 @@
+---
+- name: Deploy new or updated application server on cluster
+  hosts: all
+  tasks:
+    - name: Kill app server
+      shell: "killall -q -15 /home/ec2-user/bin/app-server || echo app-server not running"
+    - name: Upload environment file
+      ansible.builtin.copy:
+        src: /home/ec2-user/.env.sh
+        dest: /home/ec2-user/.env.sh_uploaded
+        mode: '0600'
+    - name: Make BIN directory
+      file:
+        path: /home/ec2-user/bin
+        state: directory
+        mode: '0770'
+    - name: Upload startup script
+      ansible.builtin.copy:
+        src: /home/ec2-user/bin/start_server.sh
+        dest: /home/ec2-user/bin/start_production_server.sh
+        mode: '0700'
+    - name: Upload compiled server
+      ansible.builtin.copy:
+        src: /home/ec2-user/server/target/debug/app-server
+        dest: /home/ec2-user/bin/app-server
+        mode: '0700'
+    - name: Start app server
+      shell: /home/ec2-user/bin/start_production_server.sh

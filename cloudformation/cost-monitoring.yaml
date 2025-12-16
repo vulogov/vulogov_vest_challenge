@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'AWS Cost Monitoring with Budget Alerts - Max $200 - CandidateId: vladimir-ulogov-001'
+
+Parameters:
+  NotificationEmail:
+    Type: String
+    Default: 'vulogov@gmail.com'
+    Description: 'Email address to receive budget alerts'
+
+Resources:
+  # SNS Topic for budget notifications
+  BudgetAlertTopic:
+    Type: 'AWS::SNS::Topic'
+    Properties:
+      TopicName: !Sub 'budget-alerts-${AWS::StackName}'
+      DisplayName: 'Budget Alerts - Max $200'
+      Subscription:
+        - Protocol: email
+          Endpoint: !Ref NotificationEmail
+      Tags:
+        - Key: CandidateId
+          Value: 'vladimir-ulogov-001'
+        - Key: MaxBudget
+          Value: '200'
+
+  # Monthly Budget with alerts at 20%, 60%, and 80%
+  MonthlyBudget:
+    Type: 'AWS::Budgets::Budget'
+    Properties:
+      Budget:
+        BudgetName: !Sub 'Monthly-Budget-${AWS::StackName}'
+        BudgetLimit:
+          Amount: 200
+          Unit: USD
+        TimeUnit: MONTHLY
+        BudgetType: COST
+      NotificationsWithSubscribers:
+        # 20% threshold - $40
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 20
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref NotificationEmail
+        
+        # 60% threshold - $120
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 60
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref NotificationEmail
+        
+        # 80% threshold - $160
+        - Notification:
+            NotificationType: ACTUAL
+            ComparisonOperator: GREATER_THAN
+            Threshold: 80
+            ThresholdType: PERCENTAGE
+          Subscribers:
+            - SubscriptionType: EMAIL
+              Address: !Ref NotificationEmail
+
+Outputs:
+  BudgetName:
+    Description: 'Name of the created budget'
+    Value: !Sub 'Monthly-Budget-${AWS::StackName}'
+    
+  BudgetAmount:
+    Description: 'Maximum budget amount'
+    Value: '200 USD'
+    
+  NotificationEmail:
+    Description: 'Email receiving alerts'
+    Value: !Ref NotificationEmail
+    
+  SnsTopicArn:
+    Description: 'ARN of the SNS Topic'
+    Value: !Ref BudgetAlertTopic
+    
+  Thresholds:
+    Description: 'Budget alert thresholds'
+    Value: |
+      20%: $40 USD
+      60%: $120 USD
+      80%: $160 USD
+      100%: $200 USD (Maximum)
+      
+  CandidateInfo:
+    Description: 'Candidate information'
+    Value: 'vladimir-ulogov-001'
+    
+  DeploymentInfo:
+    Description: 'Deployment information'
+    Value: !Sub |
+      Stack Name: ${AWS::StackName}
+      Region: ${AWS::Region}
+      All resources tagged with CandidateId: vladimir-ulogov-001

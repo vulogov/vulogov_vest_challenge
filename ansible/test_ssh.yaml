@@ -1,0 +1,13 @@
+# test_ssh.yml
+---
+- name: Test SSH connectivity
+  hosts: all
+  gather_facts: no  # Don't gather facts, just test connection
+  
+  tasks:
+    - name: Test connection with ping
+      ansible.builtin.ping:
+      
+    - name: Display connection success
+      ansible.builtin.debug:
+        msg: "SSH connection successful to {{ inventory_hostname }}"

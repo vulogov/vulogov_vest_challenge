@@ -1,0 +1,6 @@
+---
+- name: Kill application server
+  hosts: all
+  tasks:
+    - name: Kill app server
+      shell: "killall -q -15 /home/ec2-user/bin/app-server || echo app-server not running"

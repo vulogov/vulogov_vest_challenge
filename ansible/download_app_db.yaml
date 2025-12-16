@@ -1,0 +1,25 @@
+# download_app_db.yml
+---
+- name: Download APP databased file from S3 bucket
+  hosts: all
+  tasks:
+    - name: Make DB directory
+      file:
+        path: /home/ec2-user/db
+        state: directory 
+    - name: Upload environment file
+      ansible.builtin.copy:
+        src: /home/ec2-user/.env.sh
+        dest: /home/ec2-user/.env.sh_uploaded
+        mode: '0600'
+    - name: Upload download script
+      ansible.builtin.copy:
+        src: /home/ec2-user/bin/download_db.sh
+        dest: /home/ec2-user/db/download_db.sh
+        mode: '0700'
+    - name: Kill app server
+      shell: "killall -q -15 /home/ec2-user/bin/app-server || echo app-server not running"
+    - name: Do download
+      shell: /home/ec2-user/db/download_db.sh
+    - name: Start app server
+      shell: nohup /home/ec2-user/bin/app-server &
